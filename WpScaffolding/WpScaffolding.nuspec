@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package>
+	<metadata>
+		<id>WpScaffolding</id>
+		<version>0.1.3</version>
+		<authors>Todor Mihaylov</authors>
+		<projectUrl>http://wpscaffolding.codeplex.com/</projectUrl>
+		<description>Scaffolders for Windows Phone apps generation. Provides MVVM code generation for Windows Phone business applications</description>
+		<summary>Scaffolders for Windows Phone apps generation</summary>
+		
+	</metadata>
+	<files>
+		<file src="Scaffolders\**\*.t4" target="tools" />
+		<file src="Scaffolders\**\*.ps1" target="tools" />
+		<file src="Images\*.*" target="content\Images" />
+		<file src="Helpers\*.*" target="content\Helpers" />
+		<file src="install.ps1" target="tools" />
+		<file src="InstallationDummyFile.txt" target="content" />
+
+		<file src="init.ps1" target="tools" />
+		<file src="T4Scaffolding.dll" target="tools" />
+		<file src="T4Scaffolding.NuGetServices.dll" target="tools" />
+		<file src="scaffoldingTabExpansion.psm1" target="tools" />
+		<file src="T4Scaffolding.Format.ps1xml" target="tools" />
+	</files>
+</package>

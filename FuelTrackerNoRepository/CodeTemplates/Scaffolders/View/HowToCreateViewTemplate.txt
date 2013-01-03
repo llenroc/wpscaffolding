@@ -1,0 +1,29 @@
+﻿1. Get heading from existing ViewScaffolder
+2. Copy working View class code to the Scaffolder
+3. Xaml file 
+Replace concrete types and names with the parameters from .ps1 script.
+	Example:
+	- Replace ViewModel Design data file name name with parameter:
+		"../SampleData/FuelRecordsListViewModelDesignData.xaml" -> "<#= designViewModelDataFile #>"
+	- Replace View full name type with parameter:
+		"FuelTracker.Views.FuelRecordsListView" -> "<#= viewFullName #>"
+	- Primary key property name:
+		"FuelRecordId" -> "<#= primaryKeyPropertyName #>"
+	- ApplicationTitle with parameter:
+		"FuelTracker" -> "<#= applicationTitle #>"
+	- Model name plural
+		"FuelRecords" -> <#= modelNamePlural #>
+	- Model name plural lower first letter
+		"fuelRecords" -> "<#= modelNamePluralLowerFirstLetter #>"
+	- Model name title - lowercase - (metro style)
+		"fuelrecords" -> "<#= modelNamePluralTitle #>"
+	- Model name
+		"FuelRecord" -> "<#= modelName #>"
+	- Model name lower first letter - modelVariableName
+		"fuelRecord" -> "<#= modelVariable #>"
+	- Model name title
+		"fuelrecord" -> "<#= modelNameTitle #>"
+
+4. Code bihind file
+5. Generate View to test it:
+PM> Scaffold View ListView -ModelType Car -DataContextType FuelTrackerContext -Force

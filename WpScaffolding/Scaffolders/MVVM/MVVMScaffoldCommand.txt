@@ -1,0 +1,2 @@
+﻿Sample:
+Scaffold MVVM -ModelType Car -DataContextType FuelTrackerContext -Force

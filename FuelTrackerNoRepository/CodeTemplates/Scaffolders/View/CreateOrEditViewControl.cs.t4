@@ -1,0 +1,306 @@
+﻿<#@ template language="C#" HostSpecific="True"  inherits="DynamicTransform" #>
+<#@ Output Extension="xaml" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="EnvDTE" #>
+<#  
+	var modelType = (CodeType)Model.ModelType; 
+	var modelName = modelType.Name;//title for single model object
+	var modelNameTitle = modelName.ToLower();
+	var modelNameLowerFirstLetter =  modelName.ToLower()[0] + modelName.Substring(1);
+	var modelVariable = modelName.ToLower();
+	
+	var modelNamePlural = Model.ModelTypePluralized;
+	var modelNamePluralTitle = modelNamePlural.ToLower();
+	var modelNamePluralLowerFirstLetter = modelNamePlural.ToLower()[0] + modelNamePlural.Substring(1);
+	var modelTypeNamespace = Model.ModelTypeNamespace;
+	var defaultNamespace = Model.DefaultNamespace;
+
+	string applicationTitle = Model.DefaultNamespace;
+	
+	string dbFileName = defaultNamespace;//isostore:/dbname.sdf
+	//var relatedEntities = ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>();
+	var primaryKeyProperty = modelType.VisibleMembers().OfType<CodeProperty>().Single(x => x.Name == Model.PrimaryKey);
+	var primaryKeyPropertyType = "int";
+
+	var viewName = Model.ViewName;
+	var viewNamespace = Model.ViewNamespace;
+	var viewFullName = viewNamespace + "." + viewName;
+	
+	var viewModelName = Model.ViewModelName;
+	var viewModelNamespace = Model.ViewModelNamespace;
+	var designViewModelDataFile = "../SampleData/" + viewModelName + "DesignData.xaml";
+	
+	var dataContextType = Model.DataContextTypeName;
+#>
+<UserControl x:Class="<#= viewFullName #>"
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	mc:Ignorable="d"
+	FontFamily="{StaticResource PhoneFontFamilyNormal}"
+	FontSize="{StaticResource PhoneFontSizeNormal}"
+	Foreground="{StaticResource PhoneForegroundBrush}"
+	d:DesignHeight="480" d:DesignWidth="480">
+
+	<Grid x:Name="LayoutRoot">
+		<Grid.RowDefinitions>
+<# 
+	int rowsCount = (GetModelProperties(modelType, true).Count)*2;//*2 for label and value
+	for (int i = 0; i < rowsCount; i++)
+	{
+#>
+				<RowDefinition Height="Auto"/>
+<#
+}
+#>
+			</Grid.RowDefinitions>
+			<#
+	int rowCounter = -1;//on first rowCounter++ value will be 0
+	foreach (ModelProperty property in GetModelProperties(modelType, true)) 
+	{
+		rowCounter++;
+		string propertyName = property.Name;
+#>
+			<TextBlock Text="<#= propertyName #>" Grid.Row="<#= rowCounter #>" TextWrapping="Wrap"/>
+<#
+		rowCounter++;
+		 if (property.Type.IsType(typeof(DateTime)))
+		{
+#>
+			<TextBox Text="{Binding <#= propertyName #>, Mode=TwoWay}" Grid.Row="<#= rowCounter #>" Margin="12,0,0,0" TextWrapping="Wrap"/>
+<#
+		}
+		else
+		{
+#>
+			<TextBox Text="{Binding <#= propertyName #>, Mode=TwoWay}" Grid.Row="<#= rowCounter #>" Margin="12,0,0,0" TextWrapping="Wrap"/>
+<#
+		}
+	}
+#>
+	</Grid>
+</UserControl>
+
+<#+
+public void GenerateDataGridColumns(EnvDTE.CodeType codeType, bool areFieldsEditable)
+{
+	foreach (ModelProperty property in GetModelProperties(codeType, true)) 
+	{
+		string propertyValue = string.Empty;
+		string propertyName = property.Name;
+		string propertyNameLowerFirstLetter = propertyName.ToLower()[0] + propertyName.Substring(1);
+
+		if ((property.Type.IsType(typeof(decimal)))
+		 || (property.Type.IsType(typeof(double)))
+		 || (property.Type.IsType(typeof(int))))
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+		}
+		else if (property.Type.IsType(typeof(string)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+	
+		}
+		else if (property.Type.IsType(typeof(DateTime)))
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+
+		}        
+		else 
+		{
+			if (areFieldsEditable)
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBox Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+
+			}
+			else
+			{
+#>
+				<sdk:DataGridTemplateColumn Header="<#= propertyName #>">
+					<sdk:DataGridTemplateColumn.CellTemplate>
+						<DataTemplate>
+							<TextBlock Text="{Binding <#= propertyName #>}" Margin="2"/>
+						</DataTemplate>
+					</sdk:DataGridTemplateColumn.CellTemplate>
+				</sdk:DataGridTemplateColumn>
+<#+                                                                                                                                                                                                                                                                                                                                                                                                          
+			}
+
+		}        
+	}
+
+}
+
+
+#>
+
+<#+
+// Describes the information about a property on the model
+class ModelProperty {
+	public string Name { get; set; }
+	public string ValueExpression { get; set; }
+	public EnvDTE.CodeTypeRef Type { get; set; }
+	public bool IsPrimaryKey { get; set; }
+	public bool IsForeignKey { get; set; }
+	public bool IsReadOnly { get; set; }
+}
+
+// Change this list to include any non-primitive types you think should be eligible to be edited using a textbox
+static Type[] bindableNonPrimitiveTypes = new[] {
+	typeof(string),
+	typeof(decimal),
+	typeof(Guid),
+	typeof(DateTime),
+	typeof(DateTimeOffset),
+	typeof(TimeSpan),
+};
+
+// Call this to get the list of properties in the model. Change this to modify or add your
+// own default formatting for display values.
+List<ModelProperty> GetModelProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = GetEligibleProperties(typeInfo, includeUnbindableProperties);
+	
+	foreach (ModelProperty prop in results) {
+		if (prop.Type.UnderlyingTypeIs<double>() || prop.Type.UnderlyingTypeIs<decimal>()) {
+			prop.ValueExpression = "String.Format(\"{0:F}\", " + prop.ValueExpression + ")";
+		}
+		else if (prop.Type.UnderlyingTypeIs<DateTime>()) {
+			prop.ValueExpression = "String.Format(\"{0:g}\", " + prop.ValueExpression + ")";
+		}
+		else if (!IsBindableType(prop.Type)) {
+			prop.ValueExpression = GetValueExpression("Model." + prop.Name, (EnvDTE.CodeType)prop.Type.CodeType);
+		}
+	}
+
+	return results;
+}
+
+// Change this list to include the names of properties that should be selected to represent an entity as a single string
+static string[] displayPropertyNames = new[] { "Name", "Title", "LastName", "Surname", "Subject", "Count" };
+
+string GetValueExpression(string propertyExpression, EnvDTE.CodeType propertyType) {
+	if (propertyType != null) {
+		var chosenSubproperty = propertyType.DisplayColumnProperty() ?? propertyType.FindProperty(displayPropertyNames);
+		if (chosenSubproperty != null) {
+			var toStringSuffix = chosenSubproperty.Type.AsFullName == "System.String" ? "" : ".ToString()";
+			return String.Format("({0} == null ? \"None\" : {0}.{1}{2})", propertyExpression, chosenSubproperty.Name, toStringSuffix);
+		}
+	}
+	return propertyExpression;
+}
+
+// Helper
+List<ModelProperty> GetEligibleProperties(EnvDTE.CodeType typeInfo, bool includeUnbindableProperties) {
+	List<ModelProperty> results = new List<ModelProperty>();
+	if (typeInfo != null) {
+		foreach (var prop in typeInfo.VisibleMembers().OfType<EnvDTE.CodeProperty>()) {
+			if (prop.IsReadable() && !prop.HasIndexParameters() && (includeUnbindableProperties || IsBindableType(prop.Type))) {
+				results.Add(new ModelProperty {
+					Name = prop.Name,
+					ValueExpression = prop.Name,
+					Type = prop.Type,
+					IsPrimaryKey = Model.PrimaryKeyName == prop.Name,
+					IsForeignKey = ParentRelations.Any(x => x.RelationProperty == prop),
+					IsReadOnly = !prop.IsWriteable()
+				});
+			}
+		}
+	}
+
+	return results;
+}
+
+IEnumerable<RelatedEntityInfo> ParentRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Parent); }
+}
+
+IEnumerable<RelatedEntityInfo> ChildRelations {
+	get { return ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>().Where(x => x.RelationType == RelationType.Child); }
+}
+
+//Helper
+bool IsBindableType(EnvDTE.CodeTypeRef type) {
+	return type.UnderlyingIsPrimitive() || bindableNonPrimitiveTypes.Any(x => type.UnderlyingTypeIs(x));
+}
+#>

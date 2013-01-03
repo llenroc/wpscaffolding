@@ -1,0 +1,356 @@
+﻿<#@ template language="C#" HostSpecific="True"  inherits="DynamicTransform" #>
+<#@ Output Extension="cs" #>
+<#@ assembly name="System.Data.Entity" #>
+<#@ import namespace="System.Collections" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text.RegularExpressions" #>
+<#@ import namespace="EnvDTE" #>
+<#  
+	var modelType = (CodeType)Model.ModelType; 
+	var modelName = modelType.Name;
+	var modelNameLowerFirstLetter =  modelName.ToLower()[0] + modelName.Substring(1);
+	var modelVariable = modelNameLowerFirstLetter;
+	
+	var modelNamePlural = Model.ModelTypePluralized;
+	var modelNamePluralLowerFirstLetter = modelNamePlural.ToLower()[0] + modelNamePlural.Substring(1);
+	var modelTypeNamespace = Model.ModelTypeNamespace;
+	var defaultNamespace = Model.DefaultNamespace;
+
+	string dbFileName = defaultNamespace;//isostore:/dbFileName.sdf
+	//var relatedEntities = ((IEnumerable)Model.RelatedEntities).OfType<RelatedEntityInfo>();
+	var primaryKeyProperty = modelType.VisibleMembers().OfType<CodeProperty>().Single(x => x.Name == Model.PrimaryKey);
+	string primaryKeyPropertyName = primaryKeyProperty.Name;
+	var primaryKeyPropertyType = primaryKeyProperty.Type.AsFullName;
+	
+	var viewModelName = Model.ViewModelName;
+	var viewModelNamespace = Model.ViewModelNamespace;
+
+	var dataContextType = Model.DataContextTypeName;
+#>
+
+using System;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
+using System.Windows;
+using System.Linq;
+using Microsoft.Phone.Controls;
+using WpScaffolding.Helpers;//using <#= defaultNamespace #>.Helpers;
+using <#= modelTypeNamespace #>;
+
+namespace <#= viewModelNamespace #>
+{
+	public class <#= viewModelName #> : INotifyPropertyChanged
+	{
+		public const string connectionString = "isostore:/<#=dbFileName #>.sdf";
+
+		<#=dataContextType #> _context;
+
+		public <#= viewModelName #>(<#=primaryKeyPropertyType #> id)
+			:this(new <#=dataContextType #>(connectionString), id)
+		{
+
+		}
+
+		public <#= viewModelName #>(<#=dataContextType #> context, <#=primaryKeyPropertyType #> id)
+			: this(context)
+		{
+			if (id <= 0)
+			{
+				throw new ArgumentException("id must be greater than 0!");
+			}
+			this.Load(id);
+		}
+
+		private <#= viewModelName #>(<#=dataContextType #> context)
+		{
+			if (context == null)
+			{
+				throw new ArgumentNullException("context must not be null");
+			}
+
+			this._context = context;
+			//create database if not exists
+			if (!_context.DatabaseExists())
+			{
+				_context.CreateDatabase();
+			}
+
+			this.<#= modelName #> = new <#= modelName #>();
+		}
+
+		/// <summary>
+		/// Loads entity with specified id
+		/// </summary>
+		/// <param name="id"></param>
+		public void Load(<#=primaryKeyPropertyType #> id)
+		{
+			var <#= modelVariable #> = _context.<#= modelNamePlural #>.Single(x => x.<#= primaryKeyPropertyName #> == id);
+			if (<#= modelVariable #> == null)
+			{
+				throw new InvalidOperationException(string.Format("<#= modelName #> with id {0} could not be found!", id));
+			}
+
+			<#= modelName #> = <#= modelVariable #>;
+		}
+
+		private <#= modelName #> _<#= modelVariable #>;
+		public <#= modelName #> <#= modelName #>
+		{
+			get
+			{
+				return _<#= modelVariable #>;
+			}
+
+			set
+			{
+				if (_<#= modelVariable #> == value)
+				{
+					return;
+				}
+				_<#= modelVariable #> = value;
+				NotifyPropertyChanged("<#= modelName #>");
+			}
+		}
+
+		#region EditCommand
+		private RelayCommand _editCommand;
+		public RelayCommand EditCommand
+		{
+			get
+			{
+				if (_editCommand == null)
+				{
+					_editCommand =
+						new RelayCommand(
+							() =>
+							{
+								EditExecute();
+							},
+							() => CanEdit
+						);
+				}
+				return _editCommand;
+			}
+			set
+			{
+				_editCommand = value;
+			}
+		}
+
+		public void EditExecute()
+		{
+			if (<#= modelName #> == null)
+			{
+				throw new Exception("Fatal error:<#= modelName #> is null!");
+			}
+
+			int <#= modelVariable #>Id = <#= modelName #>.<#= primaryKeyPropertyName #>;
+			NavigateTo<#= modelName #>Edit(<#= modelVariable #>Id);
+		}
+
+		/// <summary>
+		/// Navigates to edit view
+		/// </summary>
+		/// <param name="<#= modelVariable #>Id"></param>
+		private static void NavigateTo<#= modelName #>Edit(int <#= modelVariable #>Id)
+		{
+			string uriAddress = string.Format("/Views/<#= modelName #>EditView.xaml?id={0}", <#= modelVariable #>Id);
+			Navigate(new Uri(uriAddress, UriKind.Relative));
+		}
+
+		private bool _canEdit = false;
+		public bool CanEdit
+		{
+			get
+			{
+				return _canEdit;
+			}
+
+			set
+			{
+				if (_canEdit == value)
+				{
+					return;
+				}
+				_canEdit = value;
+
+				NotifyPropertyChanged("CanEdit");
+				EditCommand.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region DeleteCommand
+		private RelayCommand _deleteCommand;
+		public RelayCommand DeleteCommand
+		{
+			get
+			{
+				if (_deleteCommand == null)
+				{
+					_deleteCommand = new RelayCommand(
+							() =>
+							{
+								DeleteExecute();
+							},
+							() => CanDelete
+						);
+				}
+				return _deleteCommand;
+			}
+			set
+			{
+				_deleteCommand = value;
+			}
+		}
+
+
+		/// <summary>
+		/// Deletes entity
+		/// </summary>
+		public void DeleteExecute()
+		{
+			var <#= modelVariable #> = this.<#= modelName #>;
+			if (<#= modelVariable #> == null)
+			{
+				throw new NullReferenceException("<#= modelName #> must not be null!");
+			}
+
+			if (<#= modelVariable #>.<#= primaryKeyPropertyName #> == 0)
+			{
+				return;
+			}
+
+			if (MessageBox.Show("Do you realy want to delete that <#= modelName #>?", "Confirm", MessageBoxButton.OKCancel) != MessageBoxResult.OK)
+			{
+				return;
+			}
+
+			//deleting fuelrecord item
+			_context.<#= modelNamePlural #>.DeleteOnSubmit(<#= modelVariable #>);
+			_context.SubmitChanges();
+
+			GoBack();
+		}
+
+		private bool _canDelete = true;
+		public bool CanDelete
+		{
+			get
+			{
+				return _canDelete;
+			}
+
+			set
+			{
+				if (_canDelete == value)
+				{
+					return;
+				}
+				_canDelete = value;
+
+				NotifyPropertyChanged("CanDelete");
+				DeleteCommand.RaiseCanExecuteChanged();
+			}
+		}
+		#endregion
+
+		#region GoToListCommand
+
+		private RelayCommand _goToListCommand;
+		public RelayCommand GoToListCommand
+		{
+			get
+			{
+				if (_goToListCommand == null)
+				{
+					_goToListCommand =
+						new RelayCommand(
+							() =>
+							{
+								GoToListExecute();
+							});
+				}
+				return _goToListCommand;
+			}
+			set
+			{
+				_goToListCommand = value;
+			}
+		}
+
+		/// <summary>
+		/// Navigates to list page
+		/// </summary>
+		public void GoToListExecute()
+		{
+			this.NavigateToList();
+		}
+
+		/// <summary>
+		/// Navigates to list page
+		/// </summary>
+		private void NavigateToList()
+		{
+			string uriAddress = "/Views/<#= modelNamePlural #>ListView.xaml";
+			Navigate(new Uri(uriAddress, UriKind.Relative));
+		}
+
+		#endregion
+
+		/// <summary>
+		/// Clean up resources here
+		/// </summary>
+		public void Cleanup()
+		{
+			this.<#= modelName #> = new <#= modelName #>();
+		}
+
+		#region INotifyPropertyChanged
+		public event PropertyChangedEventHandler PropertyChanged;
+		private void NotifyPropertyChanged(String propertyName)
+		{
+			PropertyChangedEventHandler handler = PropertyChanged;
+			if (null != handler)
+			{
+				handler(this, new PropertyChangedEventArgs(propertyName));
+			}
+		}
+		#endregion
+
+		#region Navigation
+		//TODO: Extract navigation into a separate class (NavigationController recommended)
+		private static PhoneApplicationFrame GetRootPhoneApplicationFrame()
+		{
+			PhoneApplicationFrame applicationFrame = (Application.Current.RootVisual as PhoneApplicationFrame);
+			return applicationFrame;
+		}
+
+		private static void Navigate(Uri address)
+		{
+			PhoneApplicationFrame applicationFrame = GetRootPhoneApplicationFrame();
+			if (applicationFrame == null)
+			{
+				throw new NullReferenceException("applicationFrame must not be null!");
+			}
+
+			applicationFrame.Navigate(address);
+		}
+
+		private static void GoBack()
+		{
+			PhoneApplicationFrame applicationFrame = GetRootPhoneApplicationFrame();
+			if (applicationFrame == null)
+			{
+				throw new NullReferenceException("applicationFrame must not be null!");
+			}
+
+			if (applicationFrame.CanGoBack)
+			{
+				applicationFrame.GoBack();
+			}
+		}
+		#endregion
+	}
+}

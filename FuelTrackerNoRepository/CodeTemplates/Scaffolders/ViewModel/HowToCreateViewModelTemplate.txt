@@ -1,0 +1,28 @@
+﻿1. Get heading from existing ViewModelScaffolder
+2. Copy working ViewModel class code to the Scaffolder
+3. Replace concrete types and names with the parameters from .ps1 script.
+	Example:
+	- Replace ViewModel name with parameter:
+		"FuelRecordDetailsViewModel" -> "<#= viewModelName #>"
+	- Replace DataContext type with parameter:
+		"FuelTrackerContext" -> "<#= dataContextType #>"
+	-  Replace connectionString with parameter:
+		"isostore:/FuelTracker.sdf" -> "isostore:/<#= dbFileName #>.sdf"
+	- Primary key property name:
+		"FuelRecordId" -> "<#= primaryKeyPropertyName #>"
+	- Primary key parameter in methods:
+		"int id" -> "<#= primaryKeyPropertyType #> id"
+	- Model name plural
+		"FuelRecords" -> <#= modelNamePlural #>
+	- Model name plural lower first letter
+		"fuelRecords" -> "<#= modelNamePluralLowerFirstLetter #>"
+	- Model name
+		"FuelRecord" -> "<#= modelName #>"
+	- Model name lower first letter - modelVariableName
+		"fuelRecord" -> "<#= modelVariable #>"
+
+4. Generate ViewModel to test it:
+PM> Scaffold ViewModel Edit -ModelType Car -DataContextType FuelTrackerContext -Force
+Scaffolding CarCreateOrEditViewModel...
+Rendering CreateOrEditViewModelWithContext
+Added ViewModel ViewModels\CarCreateOrEditViewModel.cs

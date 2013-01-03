@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<package>
+  <metadata>
+    <id>WpScaffolding</id>
+    <version>0.1.0</version>
+    <authors>Todor Mihaylov</authors>
+    <description>Scaffolders for Windows Phone apps generation. Provides MVVM code generation for Windows Phone Business applications</description>
+    <summary>Scaffolders for Windows Phone apps generation</summary>
+    <dependencies>
+      <dependency id="T4Scaffolding.Core" version="1.0.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="Scaffolders\**\*.t4" target="tools" />
+    <file src="Scaffolders\**\*.ps1" target="tools" />
+	<file src="Images\*.*" target="content\Images" />
+	<file src="Helpers\*.*" target="content\Helpers" />
+    <file src="install.ps1" target="tools" />
+    <file src="InstallationDummyFile.txt" target="content" />
+  </files>
+</package>

@@ -1,0 +1,14 @@
+﻿<local:FuelRecordsListViewModel
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"       
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="clr-namespace:FuelTracker.ViewModels"
+	xmlns:models="clr-namespace:FuelTracker.Models" >
+	<local:FuelRecordsListViewModel.FuelRecords>
+		<models:FuelRecord FuelRecordId="1" RefuelDate="1.1.2012" Quantity="12" Amount="23.4" Notes="FuelRecord 1" />
+		<models:FuelRecord FuelRecordId="2" RefuelDate="12.1.2012" Quantity="45.3" Amount="80"  Notes="FuelRecord 2" />
+		<models:FuelRecord FuelRecordId="3" RefuelDate="12.2.2012" Quantity="11" Amount="4533"  Notes="FuelRecord 3" />
+		<models:FuelRecord FuelRecordId="4" RefuelDate="5.4.2012" Quantity="22" Amount="33.4"  Notes="FuelRecord 4" />
+		<models:FuelRecord FuelRecordId="5" RefuelDate="5.3.2012" Quantity="2" Amount="13.4"  Notes="FuelRecord 5" />
+		<models:FuelRecord FuelRecordId="6" RefuelDate="11.2.2012" Quantity="8.4" Amount="26.2"  Notes="FuelRecord 6" />
+	</local:FuelRecordsListViewModel.FuelRecords>
+</local:FuelRecordsListViewModel>
